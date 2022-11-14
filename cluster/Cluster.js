@@ -156,7 +156,7 @@ export default class Cluster {
 
 		Object.values( this.pods ).map( pod=>{
 
-			console.log( `> Pod ${pod.name} is ${pod.started ? `online on port ${pod.port}` : 'offline'}` );
+			console.log( `   - Pod ${pod.name} is ${pod.started ? `running on port ${pod.port}` : 'offline'}` );
 
 		} );
 
