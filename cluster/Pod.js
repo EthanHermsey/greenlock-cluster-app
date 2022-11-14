@@ -71,7 +71,8 @@ export default class Pod {
 					...process.env,
 					PORT: this.port,
 					PRIVKEY: this.certs.privkey,
-					CERT: this.certs.cert
+					CERT: this.certs.cert,
+					REPORT: `file://${__dirname}\\hooks\\reportPID.js`
 				},
 				cwd: `${__dirname}/pods/${this.name}/`
 			}
