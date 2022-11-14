@@ -1,0 +1,11 @@
+{
+  "homepage": "https://www.basis64.nl/",
+  "domain": "basis64.ddns.net",
+  "servers": [
+    {
+      "name": "quicktiles",
+      "port": 5000,
+      "restart": true
+    }
+  ]
+}
