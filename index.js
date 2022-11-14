@@ -42,11 +42,7 @@ const setup = () =>{
 			} )
 			.serve( app );
 
-		setTimeout( () => {
-
-			cluster.init();
-
-		}, 600 );
+		setTimeout( () => cluster.init(), 800 );
 
 	} );
 

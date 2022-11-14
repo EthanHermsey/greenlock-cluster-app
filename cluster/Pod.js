@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { exec } from 'node:child_process';
 
 export default class Pod {
@@ -9,6 +10,7 @@ export default class Pod {
 		this.client = undefined;
 		this.config = config;
 		this.certs = certs;
+		this.loadDb();
 
 	}
 
@@ -30,12 +32,49 @@ export default class Pod {
 
 	}
 
-	up() {
+	loadDb() {
+
+		if ( fs.existsSync( `${__dirname}/db/${this.config.name}.json` ) ) {
+
+			fs.readFile( `${__dirname}/db/${this.config.name}.json`, ( _, data )=>{
+
+				const db = JSON.parse( data.toString() );
+				this.log = db.log;
+				if ( db.started && ! this.started ) setTimeout( ()=>this.up( true ), 200 );
+
+			} );
+
+		}
+
+	}
+
+	saveDb() {
+
+		fs.writeFile(
+			`${__dirname}/db/${this.config.name}.json`,
+			JSON.stringify( {
+				started: this.started,
+				log: this.log
+		    } ),
+			()=>{}
+		);
+
+	}
+
+	up( silent ) {
 
 		//create client
 		this.client = exec(
 			'node .',
-			{ env: { ...process.env, PORT: this.port, PRIVKEY: this.certs.privkey, CERT: this.certs.cert }, cwd: __dirname + `/pods/${this.name}/` }
+			{
+				env: {
+					...process.env,
+					PORT: this.port,
+					PRIVKEY: this.certs.privkey,
+					CERT: this.certs.cert
+				},
+				cwd: `${__dirname}/pods/${this.name}/`
+			}
 		);
 
 		//log stdout, intercept pid report
@@ -49,6 +88,7 @@ export default class Pod {
 			} else {
 
 				this.log += msg;
+				this.saveDb();
 
 			}
 
@@ -57,7 +97,7 @@ export default class Pod {
 		//handle exit and errors
 		this.client.on( 'exit', ( code )=>{
 
-			console.log( `> Pod ${this.name} exited${ code ? ' with error code ' + code : ''}.` );
+			console.log( `> Pod ${this.name} stopped${ code ? ' with error code ' + code : ''}` );
 			this.restart();
 
 		} );
@@ -70,11 +110,12 @@ export default class Pod {
 
 		//set started
 		this.started = true;
-		console.log( `> Pod ${this.name} is listening on port ${this.port}` );
+		if ( ! silent ) console.log( `> Pod ${this.name} is listening on port ${this.port}` );
+		this.saveDb();
 
 	}
 
-	down() {
+	down( quiting ) {
 
 		if ( this.client ) {
 
@@ -85,6 +126,7 @@ export default class Pod {
 		}
 		this.client = undefined;
 		this.started = false;
+		if ( ! quiting ) this.saveDb();
 
 	}
 
@@ -93,6 +135,8 @@ export default class Pod {
 		if ( this.started && this.restart ) {
 
 			console.log( `> Restarting pod ${this.name}.` );
+			this.log += `Restarting Pod ${this.name}.\n`;
+
 			this.down();
 			this.up();
 

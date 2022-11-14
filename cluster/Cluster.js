@@ -277,10 +277,11 @@ export default class Cluster {
 
 	async quit() {
 
-		console.log( '\n> Stopping cluster...' );
-		this.down( 'all' );
+		console.log( '> Stopping cluster...' );
 
-		console.log( 'Exited greenlock cluster.' );
+		Object.values( this.pods ).map( pod=>pod.down( true ) );
+
+		console.log( '\nClosed Greenlock Cluster.\n' );
 		process.exit( 0 );
 
 	}

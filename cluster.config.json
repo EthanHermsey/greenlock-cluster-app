@@ -7,6 +7,11 @@
       "name": "quicktiles",
       "port": 5000,
       "restart": true
+    },
+    {
+      "name": "test",
+      "port": 2080,
+      "restart": false
     }
   ]
 }
