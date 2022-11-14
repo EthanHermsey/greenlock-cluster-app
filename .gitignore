@@ -1,8 +1,8 @@
 .DS_Store
 node_modules
-servers
+pods
 db
-greenlock/*
+greenlock.d
 
 # local env files
 .env.local

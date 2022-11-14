@@ -1,47 +1,62 @@
 //"use strict";
-
-import fs from 'fs';
-import path  from "path";
+import path from "path";
 import express from "express";
 import greenlock from "greenlock-express";
 import Cluster from './cluster/Cluster.js';
+import { exec } from 'child_process';
+import Config from './config/Config.js';
+
 
 //setting up environment
+console.log();
+console.log( '--= Greenlock Cluster =--' );
+console.log();
 process.title = 'Greenlock Cluster';
-global.__dirname = path.resolve('./');
+global.__dirname = path.resolve( './' );
 global.logErrorMessage = msg =>{
-    const repeat = (chr,t)=>new Array(t).fill(chr).join('');
-    console.log('');
-    console.log(repeat('#', msg.length + 8));
-    console.log(`##  ${msg}  ##`);
-    console.log(repeat('#', msg.length + 8));
-    console.log('');
-}
 
-//load config
-let config = {};
-if ( !fs.existsSync(__dirname + '/cluster.config.json')){
-    logErrorMessage('No cluster config provided! add cluster.config.json to root directory.');                
-} else {
-    config = JSON.parse(fs.readFileSync(__dirname + '/cluster.config.json').toString()); 
-}
+	const repeat = ( chr, t )=>new Array( t ).fill( chr ).join( '' );
+	console.log( '' );
+	console.log( repeat( '#', msg.length + 8 ) );
+	console.log( `##  ${msg}  ##` );
+	console.log( repeat( '#', msg.length + 8 ) );
+	console.log( '' );
+
+};
 
 //create greenlock-express app
 const app = express();
-app.use("/", function(_, res) {
-    res.redirect(301, config.homepage );
-});
+app.use( "/", ( _, res ) => config.homepage ? res.redirect( 301, config.homepage ) : res.status( 400 ).end() );
+const setup = () =>{
 
-//activate greenlock
-greenlock
-.init({
-    packageRoot: __dirname,
-    configDir: "./greenlock",
-    maintainerEmail: "basis64@hotmail.com",
-    cluster: false
-})
-.serve(app);
+	exec( `npx greenlock add --subject ${config.domain} --altnames ${config.domain}`, ()=>{
+
+		console.log( 'Domain added: ' + config.domain + '.' );
+
+		// greenlock
+		// 	.init( {
+		// 		packageRoot: __dirname,
+		// 		configDir: "./greenlock.d",
+		// 		maintainerEmail: config.email,
+		// 		cluster: false
+		// 	} )
+		// 	.serve( app );
+
+		setTimeout( () => {
+
+			cluster.init();
+
+		}, 600 );
+
+	} );
+
+};
+
+
+//load config
+const config = new Config();
+config.on( 'load', ()=>setup() );
+config.load();
 
 //initialize cluster
-const cluster = new Cluster();
-cluster.init();
+const cluster = new Cluster( config );
