@@ -5,7 +5,6 @@ export default class Config {
 	constructor() {
 
 		this.config = {};
-		this.events = {};
         this.fillable = [
             'email',
             'homepage',
@@ -28,27 +27,25 @@ export default class Config {
         return this.config?.pods;
     }
     
-	on( event, fn ) {
-		this.events[ event ] = fn;        
-	}
-
-	load() {
-        this.reload(true);
+	load( cb ) {
+        const success = this.reload();
+        if ( success && cb ) cb();
 	}
 
     save() {
         fs.writeFileSync( __dirname + '/cluster.config.json', JSON.stringify( this.config, null, 2 ) );
 	}
 
-	reload( onLoad ) {
+	reload() {
         if ( ! fs.existsSync( __dirname + '/cluster.config.json' ) ) {
 
 			logErrorMessage( 'No cluster config provided! add cluster.config.json to root directory.' );
+            return false;
 
 		} else {
 
 			this.config = JSON.parse( fs.readFileSync( __dirname + '/cluster.config.json' ).toString() );
-			if ( onLoad && this.events.load ) this.events.load();
+			return true;
 
 		}
 	}

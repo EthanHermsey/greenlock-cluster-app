@@ -33,14 +33,14 @@ const setup = () =>{
 
 		console.log( 'Domain added: ' + config.domain + '.' );
 
-		// greenlock
-		// 	.init( {
-		// 		packageRoot: __dirname,
-		// 		configDir: "./greenlock.d",
-		// 		maintainerEmail: config.email,
-		// 		cluster: false
-		// 	} )
-		// 	.serve( app );
+		greenlock
+			.init( {
+				packageRoot: __dirname,
+				configDir: "./greenlock.d",
+				maintainerEmail: config.email,
+				cluster: false
+			} )
+			.serve( app );
 
 		setTimeout( () => {
 
@@ -52,11 +52,9 @@ const setup = () =>{
 
 };
 
-
 //load config
 const config = new Config();
-config.on( 'load', ()=>setup() );
-config.load();
+config.load( setup );
 
 //initialize cluster
 const cluster = new Cluster( config );
