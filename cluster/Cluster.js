@@ -150,7 +150,7 @@ export default class Cluster {
 
 		console.log( 'Stopping cluster...' );
 
-		Object.keys( this.pods ).map( name => this.removePod( name ) );
+		Object.values( this.pods ).map( pod => pod.down( true ) );
 
 		console.log( undefined, true ); //important
 		console.log( 'Closed Greenlock Cluster.\n', true );
