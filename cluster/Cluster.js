@@ -1,5 +1,7 @@
 import fs from 'fs';
-import readline from 'readline';
+import express from 'express';
+import greenlock from 'greenlock-express';
+import Cli from '../cli/Cli.js';
 import Pod from './Pod.js';
 
 export default class Cluster {
@@ -11,86 +13,86 @@ export default class Cluster {
 		this.pods = {};
 		this.certs = {};
 
-		this.readline = readline.createInterface( {
-			input: process.stdin,
-			output: process.stdout
-		} );
-		this.readline.on( "SIGINT", ()=>this.quit() );
-
-		this.commands = [
-			'list',
-			'reload',
-			'up',
-			'down',
-			'add',
-			'remove',
-			'log',
-			'quit',
-			'help'
-		];
+		this.cli = new Cli( this );
 
 	}
 
-	loadPodsFromConfig() {
+	setup() {
 
-		//add
-		this.config.pods.map( pod => {
+		if ( this.config.noConfig ) {
 
-			if ( ! this.pods[ pod.name ] ) this.pods[ pod.name ] = new Pod( pod, this.certs );
-
-		} );
-
-		//remove
-		for ( const pod in this.pods ) {
-
-			const inConfig = this.config.pods.filter( p=>p.name == pod )[ 0 ];
-			if ( ! inConfig ) this.removePodFromConfig( pod );
-
-		}
-
-	}
-
-	addPodToConfig( pod ) {
-
-		pod.restart = ( pod.restart == 'true' ) ? true : false;
-		const npods = [ ...this.config.pods ];
-		npods.push( pod );
-		this.config.set( 'pods', npods );
-
-	}
-
-	removePodFromConfig( name ) {
-
-		this.pods[ name ].down();
-		delete this.pods[ name ];
-		const npods = this.config.pods.filter( pod=>pod.name != name );
-		this.config.set( 'pods', npods );
-
-	}
-
-	podExists( name ) {
-
-		if ( name == 'all' || this.pods[ name ] ) {
-
-			return true;
-
-		} else if ( name == undefined ) {
-
-			console.log( "> Pod name not provided. Add pod name or 'all' to the command." );
+			this.cli.setup( this.config, ()=>this.checkDirectories() );
+			return;
 
 		} else {
 
-			console.log( '> Pod with name ' + name + ' could not be found.' );
+			console.log( 'Config loaded' );
+			this.setupDirectories();
 
 		}
-		return false;
 
 	}
 
-	init( i = 300 ) {
+	setupDirectories() {
 
-		if ( i == 300 ) console.log( '\n> Searching for SSL certificates..' );
-		if ( i == 150 ) console.log( '> Still Searching for certificates..' );
+		if ( ! fs.existsSync( __dir.db ) ) {
+
+			fs.mkdirSync( __dir.db );
+			console.log( 'Setup db directory' );
+
+		}
+
+		if ( ! fs.existsSync( __dir.db ) ) {
+
+			fs.mkdirSync( __dir.db );
+			console.log( 'Setup db directory' );
+
+		}
+
+		if ( ! fs.existsSync( __dir.pods ) ) {
+
+			fs.mkdirSync( __dir.pods );
+			console.log( 'Setup pods directory' );
+
+		}
+
+		this.setupDomain();
+
+	}
+
+	setupDomain() {
+
+		//check domain in greenlock.d/config.json
+		let add = false;
+		if ( fs.existsSync( __dir.greenlock + '/config.json' ) ) {
+
+			const greenlockConfig = fs.readFileSync( __dir.greenlock + '/config.json' ).toString();
+			if ( greenlockConfig.search( this.config.domain ) < 0 ) add = true;
+
+		} else {
+
+			add = true;
+
+		}
+
+		//add domain
+		if ( add ) {
+
+			console.log( 'Setup domain ' + this.config.domain );
+			if ( ! fs.existsSync( __dir.greenlock ) ) fs.mkdirSync( __dir.greenlock );
+			fs.writeFileSync( __dir.greenlock + '/config.json', `{ "sites": [{ "subject": "${this.config.domain}", "altnames": ["${this.config.domain}"] }] }` );
+
+		}
+
+		this.setupCerts();
+
+	}
+
+	setupCerts( i = 300 ) {
+
+		// this.start();
+		if ( i == 300 ) console.log( 'Searching for SSL certificates..' );
+		if ( i == 150 ) console.log( 'Still Searching for certificates..' );
 
 		const isPrivkey = fs.existsSync( `./greenlock.d/live/${this.config.domain}/privkey.pem` );
 		const isCert = fs.existsSync( `./greenlock.d/live/${this.config.domain}/cert.pem` );
@@ -102,18 +104,18 @@ export default class Cluster {
 				cert: fs.readFileSync( `./greenlock.d/live/${this.config.domain}/cert.pem` ).toString()
 			};
 
-			console.log( '> Found SSL certificates\n' );
+			console.log( 'Found SSL certificates\n' );
 			this.start();
 
 		} else {
 
 			if ( i <= 0 ) {
 
-				logErrorMessage( "The certificates seem to be missing.. We've been looking for 30 seconds in ./greenlock.d/live/basis64.ddns.net/..." );
+				console.error( "The certificates seem to be missing.. We've been looking for 30 seconds in ./greenlock.d/live/basis64.ddns.net/..." );
 				return;
 
 			}
-			setTimeout( ()=>this.init( i - 1 ), 100 );
+			setTimeout( ()=>this.setupCerts( i - 1 ), 100 );
 
 		}
 
@@ -121,170 +123,131 @@ export default class Cluster {
 
 	start() {
 
-		this.loadPodsFromConfig();
-		setTimeout( () => this.display(), 500 );
+		const app = express();
+		app.use( "/", ( _, res ) => this.config.homepage ? res.redirect( 301, this.config.homepage ) : res.status( 400 ).end() );
+
+		greenlock
+			.init( {
+				packageRoot: __dir.root,
+				configDir: __dir.greenlock,
+				maintainerEmail: this.config.email
+			} )
+			.serve( app );
+
+		this.loadPods();
+		this.watchPods();
+
+		setTimeout( () => {
+
+			console.log();
+			this.cli.display();
+
+		}, 600 );
 
 	}
 
-	display() {
+	quit() {
 
-		this.readline.question( "> ", async ( cmd ) => {
+		console.log( 'Stopping cluster...' );
 
-			cmd = cmd.split( ' ' );
-			if ( this.commands.includes( cmd[ 0 ] ) ) {
+		Object.keys( this.pods ).map( name => this.removePod( name ) );
 
-				await this[ cmd[ 0 ] ]( cmd.slice( 1 ) );
-
-			} else {
-
-				console.log( "> Unknown command. Type 'help' for a help menu." );
-
-			}
-
-			setTimeout( () => {
-
-				this.display();
-
-			}, 100 );
-
-		} );
-
-	}
-
-
-	async list() {
-
-		Object.values( this.pods ).map( pod=>{
-
-			console.log( `   - Pod ${pod.name} is ${pod.started ? `running on port ${pod.port}` : 'offline'}` );
-
-		} );
-
-	}
-
-	async reload() {
-
-		this.config.reload();
-		this.loadPodsFromConfig();
-
-	}
-
-	async add( [ name, port, restart ] ) {
-
-		if ( typeof name != 'string' || ! parseInt( port ) || ! ( restart == 'true' || restart == 'false' ) ) {
-
-			console.log( "> Arguments provided to 'add' are not correct. It should be [name] [port] [restart]. For example 'add test 3000 true'" );
-			return;
-
-		}
-		if ( ! fs.existsSync( __dirname + '/pods/' + name ) ) {
-
-			console.log( `> There was no directory found for pod ${name}. Make sure to add the project folder to ./pods first.` );
-			return;
-
-		}
-
-		this.addPodToConfig( { name, port: parseInt( port ), restart } );
-		this.loadPodsFromConfig();
-		console.log( '> Succesfully added pod ' + name );
-
-	}
-
-	async remove( [ name ] ) {
-
-		if ( ! this.podExists( name ) ) return;
-
-		const confirm = new Promise( ( resolve, _ )=>{
-
-			this.readline.question( `> This action will remove pod ${name}, are you sure? [Y/n]: `, ( cmd ) => {
-
-				cmd = cmd || 'y';
-				if ( cmd == 'y' || cmd == 'Y' ) {
-
-					this.removePodFromConfig( name );
-					console.log( '> Succesfully removed pod ' + name );
-
-				} else {
-
-					console.log( '> Did not remove pod ' + name );
-
-				}
-				resolve();
-
-			} );
-
-		} );
-		await confirm;
-
-	}
-
-	async up( [ name ] ) {
-
-		if ( ! this.podExists( name ) ) return;
-		Object.values( this.pods ).map( pod=>{
-
-			if ( name == 'all' || name == pod.name ) pod.up();
-
-		} );
-
-	}
-
-	async down( [ name ] ) {
-
-		if ( ! this.podExists( name ) ) return;
-		Object.values( this.pods ).map( pod=>{
-
-			if ( name == 'all' || name == pod.name ) pod.down();
-
-		} );
-
-	}
-
-	async log( [ name ] ) {
-
-		if ( ! this.podExists( name ) ) return;
-		Object.values( this.pods ).map( pod=>{
-
-			if ( name == 'all' || name == pod.name ) {
-
-				console.log( '> Logs for pod ' + pod.name + ':' );
-				console.log( pod.log.split( '\n' ).map( t=>'    ' + t ).join( '\n' ) );
-
-			}
-
-		} );
-
-	}
-
-	async help() {
-
-		console.log( '> Greenlock Cluster Help Menu' );
-		console.log();
-		console.log( 'list                         - List all available pods and see their status' );
-		console.log( 'reload                       - Reload pods from config (existing pods will persist)' );
-		console.log( 'up [name]                    - Start pod with name*' );
-		console.log( 'down [name]                  - Stop pod with name*' );
-		console.log( 'add [name] [port] [restart]  - Add a pod. [name] as string, [port] as number, [restart] as true/false' );
-		console.log( 'remove [name]                - Remove a pod' );
-		console.log( 'log [name]                   - Show logs for pod with name*' );
-		console.log( 'quit                         - Exit cluster' );
-		console.log( 'help                         - Shows this menu' );
-		console.log();
-		console.log( "* to select all pods, use 'all' as [name]" );
-		console.log();
-
-	}
-
-	async quit() {
-
-		console.log( '> Stopping cluster...' );
-
-		Object.values( this.pods ).map( pod=>pod.down( true ) );
-
-		console.log( '\nClosed Greenlock Cluster.\n' );
+		console.log( undefined, true ); //important
+		console.log( 'Closed Greenlock Cluster.\n', true );
 		process.exit( 0 );
 
 	}
+
+
+	//                            .o8
+	//                           "888
+	// oo.ooooo.   .ooooo.   .oooo888   .oooo.o
+	//  888' `88b d88' `88b d88' `888  d88(  "8
+	//  888   888 888   888 888   888  `"Y88b.
+	//  888   888 888   888 888   888  o.  )88b
+	//  888bod8P' `Y8bod8P' `Y8bod88P" 8""888P'
+	//  888
+	// o888o
+	watchPods() {
+
+		fs.watch( __dir.pods, () => {
+
+			this.config.reload();
+			this.loadPods();
+
+		} );
+
+	}
+
+	loadPods() {
+
+		//add
+		this.config.pods.map( name => {
+
+			if ( ! this.pods[ name ] ) {
+
+				this.addPod( name );
+				console.log( 'Loading pod ' + name );
+
+			}
+
+		} );
+
+		//remove
+		for ( const name in this.pods ) {
+
+			if ( ! this.config.pods.includes( name ) ) {
+
+				this.removePod( name );
+				console.log( 'Removed pod ' + name );
+
+			}
+
+		}
+
+		console.log();
+
+	}
+
+	addPod( name ) {
+
+		this.pods[ name ] = new Pod( name, this.certs );
+
+	}
+
+	setPod( name, port, autorestart ) {
+
+		if ( ! this.podExists( name ) ) return;
+		this.pods[ name ].set( port, autorestart );
+
+	}
+
+	removePod( name ) {
+
+		this.pods[ name ].down( true );
+		delete this.pods[ name ];
+
+	}
+
+	podExists( name ) {
+
+		if ( name == 'all' || this.pods[ name ] ) {
+
+			return true;
+
+		} else if ( name == undefined ) {
+
+			console.log( "Pod name not provided. Add pod name or 'all' to the command." );
+
+		} else {
+
+			console.log( 'Pod with name ' + name + ' could not be found.' );
+
+		}
+		return false;
+
+	}
+
 
 }
 

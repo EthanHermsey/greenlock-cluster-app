@@ -13,7 +13,7 @@ console.log( '--= Greenlock Cluster =--' );
 console.log();
 process.title = 'Greenlock Cluster';
 global.__dirname = path.resolve( './' );
-global.logErrorMessage = msg =>{
+console.error = msg =>{
 
 	const repeat = ( chr, t )=>new Array( t ).fill( chr ).join( '' );
 	console.log( '' );
@@ -29,22 +29,25 @@ const app = express();
 app.use( "/", ( _, res ) => config.homepage ? res.redirect( 301, config.homepage ) : res.status( 400 ).end() );
 const setup = () =>{
 
-	exec( `npx greenlock add --subject ${config.domain} --altnames ${config.domain}`, ()=>{
+	const adddomain = exec( `npx greenlock add --subject ${config.domain} --altnames ${config.domain}`, ()=>{
 
 		console.log( 'Domain added: ' + config.domain + '.' );
 
-		greenlock
-			.init( {
-				packageRoot: __dirname,
-				configDir: "./greenlock.d",
-				maintainerEmail: config.email,
-				cluster: false
-			} )
-			.serve( app );
+		// greenlock
+		// 	.init( {
+		// 		packageRoot: __dirname,
+		// 		configDir: "./greenlock.d",
+		// 		maintainerEmail: config.email,
+		// 		cluster: false
+		// 	} )
+		// 	.serve( app );
 
 		setTimeout( () => cluster.init(), 800 );
 
+		adddomain.kill( 'SIGTERM' );
+
 	} );
+
 
 };
 

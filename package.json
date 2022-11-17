@@ -1,8 +1,9 @@
 {
-    "name": "greenlock",
+    "name": "greenlock-cluster-app",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "bin": "index.bin.js",
     "type": "module",
     "scripts": {
         "start": "node .",
