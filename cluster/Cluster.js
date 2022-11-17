@@ -205,7 +205,7 @@ export default class Cluster {
 
 		}
 
-		console.log();
+		console.log( undefined, true ); //important
 
 	}
 
