@@ -79,6 +79,13 @@ export default class Pod {
 
 	}
 
+	saveLog( msg ) {
+
+		this.log += msg;
+		if ( this.log.length > 100000 ) this.log = this.log.substring( this.log.length - 100000 );
+
+	}
+
 	up( silent ) {
 
 		if ( this.started ) {
@@ -122,7 +129,7 @@ export default class Pod {
 
 			} else {
 
-				this.log += msg;
+				this.saveLog( msg );
 				this.saveDb();
 
 			}
@@ -171,7 +178,7 @@ export default class Pod {
 
 			}
 			this.client.kill( 'SIGTERM' );
-			this.log += `Pod [ ${this.name} ] stopped.\n`;
+			this.saveLog( `Pod [ ${this.name} ] stopped\n` );
 
 		}
 		this.client = undefined;
@@ -193,17 +200,13 @@ export default class Pod {
 			} else {
 
 				console.log( `Restarting pod [ ${this.name} ]` );
-				this.log += `Restarting Pod [ ${this.name} ]\n`;
+				this.saveLog( `Restarting Pod [ ${this.name} ]\n` );
 
 				this.down();
 				this.up();
 
 			}
 
-
-		} else {
-
-			this.down();
 
 		}
 
