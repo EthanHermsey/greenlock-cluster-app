@@ -205,7 +205,7 @@ export default class Cluster {
 
 		}
 
-		console.log( undefined, true ); //important
+		// console.log( '', true ); //important
 
 	}
 
@@ -224,6 +224,7 @@ export default class Cluster {
 
 	removePod( name ) {
 
+		if ( fs.existsSync( __dir.db + `/${name}.json` ) ) fs.unlinkSync( __dir.db + `/${name}.json` );
 		this.pods[ name ].down( true );
 		delete this.pods[ name ];
 
