@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 export default class Interface {
 
 	constructor( cli, cluster ) {
