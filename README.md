@@ -86,4 +86,6 @@ new ws.Server( { server: app, path: '/' } );
 - log  [name*]                      - Show logs for pod with name
 - help                              - Shows this menu
 - quit                              - Exit cluster
+
+
 * you can use 'all' to select all pods
