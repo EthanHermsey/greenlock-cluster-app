@@ -88,4 +88,4 @@ new ws.Server( { server: app, path: '/' } );
 - quit                              - Exit cluster
 
 
-* you can use 'all' to select all pods
+you can use 'all' to select all pods
