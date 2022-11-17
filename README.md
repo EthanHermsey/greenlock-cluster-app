@@ -21,7 +21,7 @@ will be use for redirection when someone navigates to the domain.
 ## Add pod
 In the root directory a folder /pods has been created. You can copy your node
 project folder, it will automatically show up in the cluster.
-You can type 'list' to see all the 
+You can type 'list' to see all the pods.
 
 ## Set pod
 Use the set command to set up a pod and specify the port and auto-restart.
