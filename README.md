@@ -14,7 +14,7 @@
 
 # Setup
 
-#Fill in email, domain and homepage. 
+## Fill in email, domain and homepage. 
 The email and domain will be used to get a ssl certificate and the homepage 
 will be use for redirection when someone navigates to the domain.
 
