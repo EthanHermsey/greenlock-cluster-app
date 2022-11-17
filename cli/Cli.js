@@ -20,12 +20,8 @@ export default class Cli {
 
 	interceptLogs() {
 
+		console.error = ( msg )=> 'error: ' + msg;
 		console.log = ( data, preventPrePost )=>{
-
-			// const terminalSize = {
-			//     width: process.stdout.columns,
-			//     height: process.stdout.rows
-			// };
 
 			if ( data ) {
 
@@ -44,16 +40,6 @@ export default class Cli {
 
 			}
 
-
-		};
-		console.error = ( msg )=>{
-
-			const repeat = ( chr, t )=>new Array( t ).fill( chr ).join( '' );
-			console.log( '' );
-			console.log( repeat( '#', msg.length + 8 ) );
-			console.log( `##  ${msg}  ##` );
-			console.log( repeat( '#', msg.length + 8 ) );
-			console.log( '' );
 
 		};
 
