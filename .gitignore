@@ -3,6 +3,8 @@ node_modules
 pods
 db
 greenlock.d
+.greenlockrc
+.greenlock-clusterrc
 
 # local env files
 .env.local
