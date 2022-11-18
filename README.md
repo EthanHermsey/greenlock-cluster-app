@@ -35,7 +35,7 @@ In the pod you will have access to:
 - process.env.PORT
 - process.env.PRIVKEY
 - process.env.CERT
-- the process.env.REPORT
+- process.env.REPORT
 
 You have to eval and run report hook. This is used to kill the process later.
 When you forget to do this you will have to manually kill the process in 
