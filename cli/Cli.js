@@ -5,6 +5,7 @@ export default class Cli {
 
 	constructor( cluster ) {
 
+		this.cluster = cluster;
 		this.commandInterface = new Interface( this, cluster );
 
 		this.readline = readline.createInterface( {

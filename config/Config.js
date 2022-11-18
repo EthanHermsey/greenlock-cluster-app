@@ -64,17 +64,17 @@ export default class Config {
 
 	reload() {
 
+		//load config file
 		if ( fs.existsSync( __dir.config ) )
 			this._config = JSON.parse( fs.readFileSync( __dir.config ).toString() );
 		else
 			this.noConfig = true;
 
-		//load files in directory pods
-		if ( fs.existsSync( __dir.pods ) ) {
-
+		//load available pods in directory
+		if ( fs.existsSync( __dir.pods ) )
 			this._config.pods = fs.readdirSync( __dir.pods );
-
-		}
+		else
+			this._config.pods = [];
 
 	}
 

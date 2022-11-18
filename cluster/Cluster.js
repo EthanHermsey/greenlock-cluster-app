@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { exec } from 'child_process';
 import express from 'express';
 import greenlock from 'greenlock-express';
 import Cli from '../cli/Cli.js';
@@ -21,8 +22,7 @@ export default class Cluster {
 
 		if ( this.config.noConfig ) {
 
-			this.cli.setup( this.config, ()=>this.checkDirectories() );
-			return;
+			this.cli.setup( this.config, ()=>this.setupDirectories() );
 
 		} else {
 
@@ -78,13 +78,21 @@ export default class Cluster {
 		//add domain
 		if ( add ) {
 
-			console.log( 'Setup domain ' + this.config.domain );
+			console.log( 'Setup domain ' + this.config.domain + ', this may take a few seconds.' );
 			if ( ! fs.existsSync( __dir.greenlock ) ) fs.mkdirSync( __dir.greenlock );
-			fs.writeFileSync( __dir.greenlock + '/config.json', `{ "sites": [{ "subject": "${this.config.domain}", "altnames": ["${this.config.domain}"] }] }` );
+			fs.writeFileSync( __dir.greenlock + '/config.json', `{"defaults": {"store": {"module": "greenlock-store-fs"}, "challenges": {"http-01": {"module": "acme-http-01-standalone"}},"renewOffset":"-45d","renewStagger":"3d","accountKeyType":"EC-P256","serverKeyType":"RSA-2048","subscriberEmail":"${this.config.email}"},"sites":[{"subject":"${this.config.domain}","altnames":["${this.config.domain}"],"renewAt":1672031968900}]}` );
+			const addDomain = exec( `npx greenlock add --subject ${this.config.domain} --altnames ${this.config.domain}`, ()=>{
+
+				this.start();
+				addDomain.kill();
+
+			} );
+
+		} else {
+
+			this.start();
 
 		}
-
-		this.setupCerts();
 
 	}
 
@@ -105,7 +113,8 @@ export default class Cluster {
 			};
 
 			console.log( 'Found SSL certificates\n' );
-			this.start();
+			console.log();
+			this.cli.display();
 
 		} else {
 
@@ -139,8 +148,7 @@ export default class Cluster {
 
 		setTimeout( () => {
 
-			console.log();
-			this.cli.display();
+			this.setupCerts();
 
 		}, 600 );
 
