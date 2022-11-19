@@ -83,7 +83,7 @@ export default class Cluster {
 			fs.writeFileSync( __dir.greenlock + '/config.json', `{"defaults": {"store": {"module": "greenlock-store-fs"}, "challenges": {"http-01": {"module": "acme-http-01-standalone"}},"renewOffset":"-45d","renewStagger":"3d","accountKeyType":"EC-P256","serverKeyType":"RSA-2048","subscriberEmail":"${this.config.email}"},"sites":[{"subject":"${this.config.domain}","altnames":["${this.config.domain}"],"renewAt":1672031968900}]}` );
 			const addDomain = exec( `npx greenlock add --subject ${this.config.domain} --altnames ${this.config.domain}`, ()=>{
 
-				this.start();
+				this.startGreenlock();
 				addDomain.kill();
 
 			} );
