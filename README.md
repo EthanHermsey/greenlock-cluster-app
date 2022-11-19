@@ -7,6 +7,7 @@ Now you can start hosting your servers.
 
 Servers are accessible through example.domain.com:3000. Pods are expected to contain
 a 'start' script in the package.json and use `process.env.PORT` as the server port. 
+Check out the example below.
 
 After a restart of the cluster, pods that were previously online will automatically 
 start up. When a pod crashes it will automatically be detected and stopped. The pod's
