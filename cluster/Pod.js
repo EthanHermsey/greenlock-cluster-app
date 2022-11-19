@@ -103,13 +103,12 @@ export default class Pod {
 
 		}
 
-
 		//create client
 		this.client = exec(
 			'node .',
 			{
 				env: {
-					...process.env,
+					// ...process.env,
 					PORT: this.port,
 					PRIVKEY: this.certs.privkey,
 					CERT: this.certs.cert,
@@ -123,9 +122,9 @@ export default class Pod {
 		this.client.stdout.on( 'data', ( data ) => {
 
 			const msg = data.toString();
-			if ( msg.includes( '#GL:PID' ) ) {
+			if ( msg.substring( 0, 7 ) === '#GL:PID' ) {
 
-				this.childPid = msg.replace( '#GL:PID', '' );
+				this.childPid = parseInt( msg.substring( 7 ) );
 
 			} else {
 
@@ -174,7 +173,7 @@ export default class Pod {
 
 			} catch ( error ) {
 
-				console.log( `Child process has already stopped, or you have to add 'eval(process.env.REPORT)()' to the pod.` );
+				console.log( `Could not kill child process. Make sure to add 'eval(process.env.REPORT)()' to the pod.` );
 
 			}
 			this.client.kill( 'SIGTERM' );

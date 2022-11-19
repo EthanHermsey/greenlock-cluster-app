@@ -90,7 +90,7 @@ export default class Cluster {
 
 		} else {
 
-			this.start();
+			this.startGreenlock();
 
 		}
 
@@ -107,14 +107,20 @@ export default class Cluster {
 
 		if ( isPrivkey && isCert ) {
 
+			console.log( 'Found SSL certificates' );
+			console.log();
+
 			this.certs = {
 				privkey: fs.readFileSync( `./greenlock.d/live/${this.config.domain}/privkey.pem` ).toString(),
 				cert: fs.readFileSync( `./greenlock.d/live/${this.config.domain}/cert.pem` ).toString()
 			};
 
-			console.log( 'Found SSL certificates\n' );
-			console.log();
-			this.cli.display();
+			this.startPods();
+			setTimeout( () => {
+
+				this.cli.display();
+
+			}, 200 );
 
 		} else {
 
@@ -130,7 +136,7 @@ export default class Cluster {
 
 	}
 
-	start() {
+	startGreenlock() {
 
 		const app = express();
 		app.use( "/", ( _, res ) => this.config.homepage ? res.redirect( 301, this.config.homepage ) : res.status( 400 ).end() );
@@ -142,9 +148,6 @@ export default class Cluster {
 				maintainerEmail: this.config.email
 			} )
 			.serve( app );
-
-		this.loadPods();
-		this.watchPods();
 
 		setTimeout( () => {
 
@@ -176,6 +179,14 @@ export default class Cluster {
 	//  888bod8P' `Y8bod8P' `Y8bod88P" 8""888P'
 	//  888
 	// o888o
+
+	startPods() {
+
+		this.loadPods();
+		this.watchPods();
+
+	}
+
 	watchPods() {
 
 		fs.watch( __dir.pods, () => {
@@ -213,7 +224,7 @@ export default class Cluster {
 
 		}
 
-		// console.log( '', true ); //important
+		console.log();
 
 	}
 
