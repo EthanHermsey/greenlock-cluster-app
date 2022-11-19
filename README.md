@@ -7,7 +7,7 @@
 
 `npm init -y`
 
-`npm i greenlock-cluster-app`
+`npm i git+https://github.com/EthanHermsey/greenlock-cluster-app.git`
 
 `npx greenlock-cluster-app`
 
