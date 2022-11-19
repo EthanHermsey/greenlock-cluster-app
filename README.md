@@ -100,19 +100,25 @@ new ws.Server( { server: server, path: '/' } );
 
 ## Commands
 
-- list                              
+- ### list                              
     List all available pods and see their status
-- set  [name] [port] [autorestart]  
+
+- ### set  [name] [port] [autorestart]  
     set pod settings. [name] as string, [port] as number, [autorestart] as true/false
-- up   [name*]                      
+
+- ### up   [name*]                      
     Start pod with name
-- down [name*]                      
+
+- ### down [name*]                      
     Stop pod with name
-- log  [name*]                      
+
+- ### log  [name*]                      
     Show logs for pod with name
-- help                              
+
+- ### help                              
     Shows this menu
-- quit                              
+    
+- ### quit                              
     Exit cluster
 
 
