@@ -1,7 +1,7 @@
 
 # greenlock-cluster-app
 
-Greenlock-cluster-app is a tool that helps to manage multiple node servers on one domain. 
+Greenlock-cluster-app is a tool for managing multiple node servers on one domain. 
 The cluster uses greenlock-express to generate a SSL certificate, that is provided 
 to each pod through ENV. Pods are accessible through their specified port.
 
