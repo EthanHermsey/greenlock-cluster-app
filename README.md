@@ -1,26 +1,22 @@
 
 # greenlock-cluster-app
 
-Greenlock-cluster-app helps to manage multiple node servers on one domain. 
-The cluster uses greenlock-express to generate a SSL certificate that is provided 
-to each pod through process.env.
-Point a dynamic dns to your address, install and start the app with your credentials.
-Now you can start hosting your secure servers.
+Greenlock-cluster-app is a tool that helps to manage multiple node servers on one domain. 
+The cluster uses greenlock-express to generate a SSL certificate, that is provided 
+to each pod through ENV. Pods are accessible through their specified port.
 
+Point a dynamic dns to your address. Install and start the app with your credentials and
+you can start hosting your secure servers.
 
-Pods are accessible through example.domain.com:3000. The cluster starts pods with the
-'start' script in the package.json.
-The pods have access to a few env variables; the SSL certificate's `process.env.CERT`
-and `process.env.PRIVKEY`, `process.env.PORT` as the server port, and the 
-`process.env.REPORT` hook, which is also a very important one. It send a signal back 
-to the cluster with the process id. When the pod is stopped the cluster can kill the 
-process, so don't forget it. 
-
+The cluster starts pods with the 'start' script specified in the pod's package.json. The 
+pods have access to a few ENV variables; The SSL certificate's `process.env.CERT` and 
+`process.env.PRIVKEY`, `process.env.PORT` to be used as the server port, and the 
+`process.env.REPORT` hook, which is very important. It send a signal back to the cluster 
+with the process id. When the pod is stopped the cluster can kill the process. 
 
 After a restart of the cluster, pods that were previously online will automatically 
 start up. When a pod crashes it will automatically be detected and stopped. The pod's
 status will be set to crashed. It will only restart manually.
-
 
 First time; It can take a few minutes for the ssl certificates to appear.
 
