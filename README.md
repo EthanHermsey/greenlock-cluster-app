@@ -1,23 +1,30 @@
-# Greenlock-cluster-app
-A greenlock cluster that enables you to manage multiple node servers on one domain. 
-It uses greenlock to provide SSL certificates that the cluster shares the 
-certificates through `process.env` with it's pods.
-Point a dynamic dns to your address, install and start the app with your credentials.
-Now you can start hosting your servers.
 
-Servers are accessible through example.domain.com:3000. Pods are expected to contain
-a 'start' script in the package.json and use `process.env.PORT` as the server port. 
+# greenlock-cluster-app
+Greenlock-cluster-app helps to manage multiple node servers on one domain. 
+The cluster uses greenlock-express to generate a SSL certificate that is provided 
+to each pod through process.env.
+Point a dynamic dns to your address, install and start the app with your credentials.
+Now you can start hosting your secure servers.
+
+
+
+Pods are accessible through example.domain.com:3000. The cluster starts pods with the
+'start' script in the package.json.
+The pods have access to a few env variables; the SSL certificate's `process.env.CERT`
+and `process.env.PRIVKEY`, `process.env.PORT` as the server port, and the report hook
+which is also a very important one. It send a signal back to the cluster with the 
+process id. When the pod is stopped the cluster can kill the process, so don't forget it!
+
+
 Check out the example below.
 
 After a restart of the cluster, pods that were previously online will automatically 
 start up. When a pod crashes it will automatically be detected and stopped. The pod's
 status will be set to crashed. It will only restart manually.
 
-The cluster's pods will have access to a few env variables. The report hook is a very
-important one. It send a signal back to the cluster with the process id. When the 
-pod is stopped the cluster can kill the process, so don't forget it!
 
-First time; It can take a few minutes for the ssl certs to come in.
+
+First time; It can take a few minutes for the ssl certificates to appear.
 
 
 
