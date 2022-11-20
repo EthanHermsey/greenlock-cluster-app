@@ -1,7 +1,19 @@
 {
     "name": "greenlock-cluster-app",
     "version": "1.1.2",
-    "description": "",
+    "description": "a tool that helps to manage multiple node servers on one domain",
+    "keywords": [
+        "greenlock",
+        "express",
+        "cluster",
+        "app",
+        "domain",
+        "server",
+        "host",
+        "ssl",
+        "https",
+        "socket"
+    ],
     "bin": "index.bin.js",
     "type": "module",
     "scripts": {
