@@ -1,4 +1,4 @@
-# Greenlock-cluster-app
+# greenlock-cluster-app
 A greenlock cluster that enables you to manage multiple node servers on one domain. 
 It uses greenlock to provide SSL certificates that the cluster shares the 
 certificates through `process.env` with it's pods.
