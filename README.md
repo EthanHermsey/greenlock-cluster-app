@@ -42,12 +42,13 @@ The email and domain will be used to get a ssl certificate and the homepage
 will be use for redirection when someone navigates to the domain.
 
 ### Add pod
-In the root directory a folder /pods has been created. You can copy your node
-project folder, it will automatically show up in the cluster.
+During setup a directory /pods will be created. You can add your node project
+folder here, it will automatically show up in the cluster.
 You can type 'list' to see all the pods.
 
 ### Set pod
-Use the set command to set up a pod to specify the port and auto-restart.
+Use the set command to set up a pod to specify the port it will use and if the pod
+should auto-restart.
 
 ### Up pod
 Use the up command to start the pod.
@@ -60,12 +61,11 @@ In the pod you will have access to:
 - process.env.CERT
 - process.env.REPORT
 
-You have to eval and run report hook. This is used to kill the process later.
-When you forget to do this you will have to manually kill the process in 
-a taskmanager.
+You have to add `eval( process.env.REPORT )()` to run the report hook. This is used to kill 
+the process when the pod is stopped. When you forget to do this you will have to manually
+kill the process in a taskmanager.
 
-It also works with websocket and socket.io, you of course will need to install 
-the packages.
+It also works with websocket and socket.io. The packages need to be installed first.
 
 ```
 "use strict";
@@ -104,23 +104,21 @@ new ws.Server( { server: server, path: '/' } );
 - ### list                              
     List all available pods and see their status
 
-- ### set  [name] [port] [autorestart]  
-    set pod settings. [name] as string, [port] as number, [autorestart] as true/false
+- ### set  [ name ] [ port ] [ auto-restart ]  
+    Set pod settings. [ name ] as string, [ port ] as number, [ auto-restart ] as true/false
 
-- ### up   [name*]                      
-    Start pod with name
+- ### up   [ name ]                      
+    Start pod with name. You can use 'all' to select all pods
 
-- ### down [name*]                      
-    Stop pod with name
+- ### down [ name ]
+    Stop pod with name. You can use 'all' to select all pods
 
-- ### log  [name*]                      
-    Show logs for pod with name
+- ### log  [ name ]                      
+    Show logs for pod with name. You can use 'all' to select all pods
 
 - ### help                              
-    Shows this menu
+    Shows the help menu.
     
 - ### quit                              
-    Exit cluster
+    Exit cluster.
 
-
-you can use 'all' to select all pods
