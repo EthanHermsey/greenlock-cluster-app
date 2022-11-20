@@ -11,9 +11,10 @@ Now you can start hosting your secure servers.
 Pods are accessible through example.domain.com:3000. The cluster starts pods with the
 'start' script in the package.json.
 The pods have access to a few env variables; the SSL certificate's `process.env.CERT`
-and `process.env.PRIVKEY`, `process.env.PORT` as the server port, and the report hook
-which is also a very important one. It send a signal back to the cluster with the 
-process id. When the pod is stopped the cluster can kill the process, so don't forget it. 
+and `process.env.PRIVKEY`, `process.env.PORT` as the server port, and the 
+`process.env.REPORT` hook, which is also a very important one. It send a signal back 
+to the cluster with the process id. When the pod is stopped the cluster can kill the 
+process, so don't forget it. 
 
 
 After a restart of the cluster, pods that were previously online will automatically 
