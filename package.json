@@ -20,7 +20,7 @@
         "start": "node .",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "author": "",
+    "author": "ethanhermsey",
     "license": "ISC",
     "dependencies": {
         "express": "^4.18.2",
